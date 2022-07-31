@@ -8,6 +8,7 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.AttrRes
+import kotlin.math.min
 
 
 class CircleProgressBar @JvmOverloads constructor(
@@ -15,32 +16,22 @@ class CircleProgressBar @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        private val DEFAULT_MAX = 100
-        private val DEFAULT_PROGRESS = 0
-        private val DEFAULT_START_ANGLE = -90f
-        private val DEFAULT_END_ANGLE = 270f
-        private val DEFAULT_REVERSE = false
-        private val DEFAULT_ROUND_CAP = true
-        private val DEFAULT_RING_WIDTH = UiUtils.dp2px(5f)
+        private const val DEFAULT_MAX = 100
+        private const val DEFAULT_PROGRESS = 0
+        private const val DEFAULT_START_ANGLE = -90f
+        private const val DEFAULT_END_ANGLE = 270f
+        private const val DEFAULT_REVERSE = false
+        private const val DEFAULT_ROUND_CAP = true
+        private val DEFAULT_RING_WIDTH = UiUtils.dp2px(5f).toFloat()
         private val DEFAULT_RING_COLOR = Color.parseColor("#0888FF")
         private val DEFAULT_RING_BACKGROUND_COLOR = Color.parseColor("#EFEFEF")
     }
 
     //进度最大值
     private var max = DEFAULT_MAX
-        get() = field
-        set(value) {
-            field = value
-            invalidate()
-        }
 
     //当前进度
     private var progress = DEFAULT_PROGRESS
-        get() = field
-        set(value) {
-            field = correctProgress(value)
-            invalidate()
-        }
 
     //绘制开始的角度
     private var startAngle = DEFAULT_START_ANGLE
@@ -63,18 +54,6 @@ class CircleProgressBar @JvmOverloads constructor(
     //圆环背景色
     private var ringBackgroungColor = DEFAULT_RING_BACKGROUND_COLOR
 
-    private fun correctProgress(progress: Int): Int {
-        var progress = progress
-        if (progress > max) {  //处理错误输入progress大于max的情况
-            if (progress % max == 0) {
-                progress = max
-            } else {
-                progress %= max
-            }
-        }
-        return progress
-    }
-
     private lateinit var mArcPaint: Paint        //绘制圆环
     private lateinit var mRectF: RectF           //圆环对应的RectF
 
@@ -91,7 +70,7 @@ class CircleProgressBar @JvmOverloads constructor(
     //获取布局属性并设置属性默认值
     private fun parseAttribute(context: Context, attrs: AttributeSet) {
         val ta = context.obtainStyledAttributes(attrs, R.styleable.CircleProgressBar)
-        max = ta.getInt(R.styleable.CircleProgressBar_max, DEFAULT_MAX)
+        max = ta.getInt(R.styleable.CircleProgressBar_ringMax, DEFAULT_MAX)
         if (max <= 0) {
             max = DEFAULT_MAX
         }
@@ -101,11 +80,10 @@ class CircleProgressBar @JvmOverloads constructor(
         roundCap = ta.getBoolean(R.styleable.CircleProgressBar_roundCap, DEFAULT_ROUND_CAP)
         progress = ta.getInt(R.styleable.CircleProgressBar_progress, DEFAULT_PROGRESS)
         ringWidth =
-            ta.getDimension(R.styleable.CircleProgressBar_ringWidth, DEFAULT_RING_WIDTH.toFloat())
-                .toInt()
+            ta.getDimension(R.styleable.CircleProgressBar_ringWidth, DEFAULT_RING_WIDTH)
         ringColor = ta.getColor(R.styleable.CircleProgressBar_ringColor, DEFAULT_RING_COLOR)
         ringBackgroungColor = ta.getColor(
-            R.styleable.CircleProgressBar_ringBackgroungColor,
+            R.styleable.CircleProgressBar_ringBackgroundColor,
             DEFAULT_RING_BACKGROUND_COLOR
         )
         ta.recycle()
@@ -132,7 +110,7 @@ class CircleProgressBar @JvmOverloads constructor(
         } else {
             result = UiUtils.dp2px(90f)
             if (specMode == MeasureSpec.AT_MOST) {
-                result = Math.min(result, specSize)
+                result = min(result, specSize)
             }
         }
         return result
@@ -161,7 +139,7 @@ class CircleProgressBar @JvmOverloads constructor(
         with(mArcPaint) {
             color = ringBackgroungColor
             style = Paint.Style.STROKE
-            strokeWidth = ringWidth.toFloat()
+            strokeWidth = ringWidth
             if (roundCap) {
                 strokeCap = Paint.Cap.ROUND
             }
@@ -174,7 +152,6 @@ class CircleProgressBar @JvmOverloads constructor(
                 strokeCap = Paint.Cap.ROUND
             }
         }
-
         var sweepAngle = progress.toFloat() / max * (endAngle - startAngle)
         if (reverse) {
             sweepAngle = -sweepAngle  //逆时针滚动
@@ -182,5 +159,25 @@ class CircleProgressBar @JvmOverloads constructor(
         canvas.drawArc(mRectF, startAngle, sweepAngle, false, mArcPaint)
     }
 
+    fun setMaxValue(max: Int) {
+        this.max = max
+        invalidate()
+    }
 
+    fun setProgress(progress: Int) {
+        this.progress = correctProgress(progress)
+        invalidate()
+    }
+
+    private fun correctProgress(progress: Int): Int {
+        var progress = progress
+        if (progress > max) {  //处理错误输入progress大于max的情况
+            if (progress % max == 0) {
+                progress = max
+            } else {
+                progress %= max
+            }
+        }
+        return progress
+    }
 }

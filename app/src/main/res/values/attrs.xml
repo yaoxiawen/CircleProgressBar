@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--圆形进度条-->
+    <!--圆环形进度条-->
     <declare-styleable name="CircleProgressBar">
-        <attr name="max" format="integer" />
+        <attr name="ringMax" format="integer" />
         <attr name="progress" format="integer" />
         <attr name="startAngle" format="float" />
         <attr name="endAngle" format="float" />
@@ -10,6 +10,6 @@
         <attr name="roundCap" format="boolean" />
         <attr name="ringWidth" format="dimension" />
         <attr name="ringColor" format="color" />
-        <attr name="ringBackgroungColor" format="color" />
+        <attr name="ringBackgroundColor" format="color" />
     </declare-styleable>
 </resources>
